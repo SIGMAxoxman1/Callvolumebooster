@@ -11,6 +11,7 @@
     <application
         android:allowBackup="true"
         android:label="Call Volume Booster"
+        android:icon="@drawable/ic_launcher"
         android:theme="@style/Theme.CallVolumeBooster"
         android:supportsRtl="true">
 

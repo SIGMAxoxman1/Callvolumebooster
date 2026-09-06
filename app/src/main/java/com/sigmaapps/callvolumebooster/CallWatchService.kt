@@ -23,7 +23,17 @@ class CallWatchService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        registerReceiver(receiver, IntentFilter("android.intent.action.PHONE_STATE"))
+        val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+            this, android.Manifest.permission.READ_PHONE_STATE
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        if (hasPermission) {
+            registerReceiver(receiver, IntentFilter("android.intent.action.PHONE_STATE"))
+        } else {
+            // Safety net: if the service somehow starts without the permission,
+            // stop instead of crashing.
+            stopSelf()
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -51,7 +61,11 @@ class CallWatchService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(receiver)
+        try {
+            unregisterReceiver(receiver)
+        } catch (e: IllegalArgumentException) {
+            // Receiver was never registered (e.g. service stopped itself early) — safe to ignore.
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

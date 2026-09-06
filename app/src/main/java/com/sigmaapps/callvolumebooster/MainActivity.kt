@@ -43,11 +43,33 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<android.widget.Button>(R.id.startServiceButton).setOnClickListener {
-            val intent = Intent(this, CallWatchService::class.java)
-            ContextCompat.startForegroundService(this, intent)
+            if (hasNeededPermissions()) {
+                val intent = Intent(this, CallWatchService::class.java)
+                ContextCompat.startForegroundService(this, intent)
+                android.widget.Toast.makeText(this, "Watching for calls now.", android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                android.widget.Toast.makeText(this, "Grant permissions first.", android.widget.Toast.LENGTH_SHORT).show()
+                requestNeededPermissions()
+            }
         }
 
+        // Ask for permissions right away instead of waiting for a button press.
+        requestNeededPermissions()
+
         updateStatus()
+    }
+
+    private fun hasNeededPermissions(): Boolean {
+        val permissions = mutableListOf(
+            android.Manifest.permission.READ_PHONE_STATE,
+            android.Manifest.permission.READ_CONTACTS
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+        return permissions.all {
+            ContextCompat.checkSelfPermission(this, it) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
     }
 
     private fun handlePickedContact(contactUri: Uri) {

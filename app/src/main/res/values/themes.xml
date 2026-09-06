@@ -1,3 +1,9 @@
 <resources>
-    <style name="Theme.CallVolumeBooster" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+    <style name="Theme.CallVolumeBooster" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="colorPrimary">@color/signal</item>
+        <item name="colorPrimaryDark">@color/ink</item>
+        <item name="colorAccent">@color/signal</item>
+        <item name="android:windowBackground">@color/ink</item>
+        <item name="colorControlNormal">@color/paper_dim</item>
+    </style>
 </resources>
