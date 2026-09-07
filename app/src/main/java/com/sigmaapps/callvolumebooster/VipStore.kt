@@ -11,8 +11,19 @@ object VipStore {
 
     private const val PREFS = "vip_prefs"
     private const val KEY_CONTACTS = "vip_contacts"
+    private const val KEY_ENABLED = "watcher_enabled"
 
     data class VipContact(val name: String, val number: String)
+
+    fun isWatcherEnabled(context: Context): Boolean {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(KEY_ENABLED, true)
+    }
+
+    fun setWatcherEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_ENABLED, enabled).apply()
+    }
 
     fun normalize(number: String): String = number.filter { it.isDigit() }.takeLast(10)
 
