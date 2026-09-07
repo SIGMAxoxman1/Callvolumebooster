@@ -2,6 +2,8 @@ package com.sigmaapps.callvolumebooster
 
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,25 +16,30 @@ class ContactPickerActivity : AppCompatActivity() {
     data class DeviceContact(val name: String, val number: String)
 
     private lateinit var adapter: ContactAdapter
-    private var contacts: List<DeviceContact> = emptyList()
+    private var allContacts: List<DeviceContact> = emptyList()
+    private var shownContacts: List<DeviceContact> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contact_picker)
 
-        contacts = loadDeviceContacts()
+        allContacts = loadDeviceContacts()
+        shownContacts = allContacts
+
         val listView = findViewById<android.widget.ListView>(R.id.contactsListView)
         val emptyText = findViewById<android.widget.TextView>(R.id.emptyContactsText)
+        val searchInput = findViewById<android.widget.EditText>(R.id.searchInput)
 
-        if (contacts.isEmpty()) {
+        if (allContacts.isEmpty()) {
             emptyText.visibility = View.VISIBLE
+            emptyText.text = "No contacts found on this device."
         }
 
-        adapter = ContactAdapter(contacts)
+        adapter = ContactAdapter()
         listView.adapter = adapter
 
         listView.setOnItemClickListener { _, _, position, _ ->
-            val contact = contacts[position]
+            val contact = shownContacts[position]
             if (VipStore.isAdded(this, contact.number)) {
                 VipStore.remove(this, contact.number)
                 Toast.makeText(this, "Removed ${contact.name}", Toast.LENGTH_SHORT).show()
@@ -42,6 +49,31 @@ class ContactPickerActivity : AppCompatActivity() {
             }
             adapter.notifyDataSetChanged()
         }
+
+        searchInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                filter(s?.toString().orEmpty(), emptyText)
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+    }
+
+    private fun filter(query: String, emptyText: android.widget.TextView) {
+        shownContacts = if (query.isBlank()) {
+            allContacts
+        } else {
+            allContacts.filter {
+                it.name.contains(query, ignoreCase = true) || it.number.contains(query)
+            }
+        }
+        emptyText.visibility = if (shownContacts.isEmpty()) View.VISIBLE else View.GONE
+        emptyText.text = if (allContacts.isEmpty()) {
+            "No contacts found on this device."
+        } else {
+            "No matches for \"$query\"."
+        }
+        adapter.notifyDataSetChanged()
     }
 
     private fun loadDeviceContacts(): List<DeviceContact> {
@@ -73,14 +105,16 @@ class ContactPickerActivity : AppCompatActivity() {
         return result
     }
 
-    private inner class ContactAdapter(private val items: List<DeviceContact>) :
-        ArrayAdapter<DeviceContact>(this@ContactPickerActivity, 0, items) {
+    private inner class ContactAdapter : ArrayAdapter<DeviceContact>(this@ContactPickerActivity, 0) {
+
+        override fun getCount(): Int = shownContacts.size
+        override fun getItem(position: Int): DeviceContact = shownContacts[position]
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             val view = convertView ?: LayoutInflater.from(context)
                 .inflate(R.layout.item_contact, parent, false)
 
-            val contact = items[position]
+            val contact = shownContacts[position]
             view.findViewById<android.widget.TextView>(R.id.contactName).text = contact.name
             view.findViewById<android.widget.TextView>(R.id.contactNumber).text = contact.number
 
@@ -94,3 +128,4 @@ class ContactPickerActivity : AppCompatActivity() {
         }
     }
 }
+
