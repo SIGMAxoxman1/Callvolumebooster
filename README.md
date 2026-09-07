@@ -38,9 +38,12 @@ already added show a green checkmark. Tapping an unchecked contact adds it
 
 ## Known limitations to be aware of
 
-- **Caller-ID reading on Android 10+**: some OEMs/devices don't reliably
-  hand the incoming number to apps this way. A more robust version would
-  register as a `CallScreeningService` (Android 10+) instead.
+- **Caller-ID reading on some OEMs**: the app now requests `READ_CALL_LOG`
+  (required since Android 10 to receive the caller's number at all), which
+  fixes the "nothing happens" symptom on stock Android. A few OEM builds
+  (heavily customized ROMs) may still handle this differently — if it's
+  still unreliable on a specific device, the sturdier alternative is
+  registering as a `CallScreeningService` (Android 10+).
 - **Android 13+ "restricted settings"**: because this APK is sideloaded
   (not from Play Store), Android may block some of the permissions above
   by default. If a permission screen looks blocked, open
