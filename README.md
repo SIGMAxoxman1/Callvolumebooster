@@ -1,33 +1,56 @@
 # Call Volume Booster
 
-Raises ringtone volume automatically when a chosen VIP contact calls.
+Raises ringtone volume automatically when one of your chosen VIP contacts
+calls — even if the phone is on silent. Everyone else rings normally.
 
 ## How to build the APK without a local Android setup
 
-1. Create a new GitHub repository and push this whole folder to it.
-2. Go to the repo's **Actions** tab. The "Build APK" workflow runs
-   automatically on every push to `main`, or you can trigger it manually
-   with the **Run workflow** button.
-3. Once it finishes (a few minutes), open the completed run and download
-   the **call-volume-booster-debug** artifact — that's a zip containing
-   `app-debug.apk`.
-4. Copy the APK to your Android phone and install it (you'll need to allow
-   "install unknown apps" for whichever app you use to open the file).
+1. Push this whole folder to a GitHub repository.
+2. Go to the repo's **Actions** tab — the "Build APK" workflow runs
+   automatically on push, or trigger it manually with **Run workflow**.
+3. Open the finished run and download the **call-volume-booster-debug**
+   artifact — a zip containing `app-debug.apk`.
+4. Copy it to your phone and install it (allow "install unknown apps" for
+   whichever app opens the file).
+
+## What happens the first time you open the app
+
+1. A short splash screen with the Sigma Apps mark.
+2. The app asks for phone-state, contacts, and notification permissions.
+3. It also opens two Settings screens you need to approve manually:
+   - **Do Not Disturb access** — without this, Android blocks ring-volume
+     changes whenever the phone is in silent/DND mode.
+   - **Battery optimization exemption** — without this, Android may kill
+     the background watcher after a while.
+4. Once permissions are granted, the watcher starts automatically — there
+   is no "Start" button. It also restarts itself after the phone reboots.
+
+## Adding VIP contacts
+
+Tap **+ Add contact** to see every contact on the device. Contacts you've
+already added show a green checkmark. Tapping an unchecked contact adds it
+(and shows "Added 1 of your contacts"); tapping a checked one removes it.
 
 ## Supported Android versions
 
 - Minimum: Android 5.0 (API 21)
 - Target: Android 14 (API 34)
 
-## Known limitations to fix next
+## Known limitations to be aware of
 
-- Reading the incoming caller's number reliably on Android 10+ is
-  restricted by Google; some OEMs/devices may not report it through the
-  broadcast this app listens to. A more robust version would use the
-  `CallScreeningService` API (Android 10+) or ask the user to make this
-  app the default call-screening app.
-- The ringer volume is boosted but not automatically restored after the
-  call — add that in `PhoneStateReceiver` (listen for `CALL_STATE_IDLE`
-  and restore the saved previous volume).
-- Only one VIP contact is supported right now; extending to a list is a
-  small change in `MainActivity` and `PhoneStateReceiver`.
+- **Caller-ID reading on Android 10+**: some OEMs/devices don't reliably
+  hand the incoming number to apps this way. A more robust version would
+  register as a `CallScreeningService` (Android 10+) instead.
+- **Android 13+ "restricted settings"**: because this APK is sideloaded
+  (not from Play Store), Android may block some of the permissions above
+  by default. If a permission screen looks blocked, open
+  **Settings → Apps → Call Volume Booster → (3-dot menu) → Allow
+  restricted settings**, then try again.
+- **OEM auto-start lists**: phones from Xiaomi, Huawei, Oppo, and similar
+  brands have their own separate "auto-start" toggle outside of Android's
+  standard battery settings. If the watcher stops working after a while
+  on one of these phones, check the manufacturer's battery/auto-start app
+  settings too — this is a device restriction, not something the app's
+  code controls.
+- **Volume is boosted but not restored** to its previous level after the
+  VIP call ends — a reasonable next step in `PhoneStateReceiver`.
