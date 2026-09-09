@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ink">#14161A</color>
+    <color name="ink_soft">#1C1F25</color>
+    <color name="paper">#F1EFEA</color>
+    <color name="paper_dim">#B7B9BE</color>
+    <color name="signal">#FFB13C</color>
+    <color name="line">#2B2F37</color>
+    <color name="success">#4CAF50</color>
+</resources>
